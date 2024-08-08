@@ -1,6 +1,6 @@
 # This collection of functions is needed to run tivie_light
 # TiVIE Light v 1.0
-# Written by Maria-Theresia Walach, CC-BY, June 2024.
+# Written by Maria-Theresia Walach, GNU General Public License v3.0, June 2024.
 
 # Packages:
 import glob
@@ -1213,7 +1213,7 @@ def get_files(mode_n, mode, target_folder, tivie_archive, cadence):
 def read_files(file_folder, correct_dt, missing_n):
     map_files = glob.glob(file_folder + "/*.cnvmap")
     map_files.sort()
-    if map_files != []: 
+    if map_files != []:
         print(map_files)
         print("Reading in map files")
         map_data = []
@@ -1244,7 +1244,9 @@ def read_files(file_folder, correct_dt, missing_n):
                 )
             ]
             dt_from_file += temp_datetime
-            file_n += [int(map_files[i][len(map_files[i]) - 16 : len(map_files[i]) - 11])]
+            file_n += [
+                int(map_files[i][len(map_files[i]) - 16 : len(map_files[i]) - 11])
+            ]
         for i in range(0, len(file_n)):
             if len(dt) == 0:
                 delta = datetime.timedelta(minutes=file_n[i])
@@ -1465,7 +1467,7 @@ def read_files(file_folder, correct_dt, missing_n):
             ds["boundary_mlat"].attrs["units"] = "degrees"
             ds["boundary_mlon"].attrs["units"] = "degrees"
             print("Finished reading files!")
-    else: 
+    else:
         ds = []
     return ds
 

@@ -5,7 +5,7 @@
 #           and the TiVIE model as a series of convection maps.
 #
 # TiVIE Light v 1.0
-# Written by Maria-Theresia Walach, CC-BY, January 2023.
+# Written by Maria-Theresia Walach, GNU General Public License v3.0, January 2023.
 # Packages:
 import glob
 import datetime
