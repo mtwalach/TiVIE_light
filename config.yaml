@@ -1,0 +1,28 @@
+# TiVIE Light v 1.0
+# Written by Maria-Theresia Walach, CC-BY, June 2024
+#############################################################
+#### USER SPECIFIC SETTINGS TO RUN TiVIE LIGHT: #############
+#############################################################
+# config.yaml
+filepaths:
+  # Set TiVIE archive folder:
+  tivie_archive: "/TiVIE/" # The name of your TiVIE folder with the TiVIE runs in.
+
+  # Note: the following three are all the same but they are separate variables so they CAN be in separate folders if need be.
+  # Set solar wind data folder:
+  sw_archive: "/tivie_light/data/" # Make sure this folder points to the data folder inside tivie light. 
+  # Set substorm folder:
+  substorm_archive: "/tivie_light/data/" # Same as above. Extra flexibility allows these to be different.
+  # Set storm folder:
+  storm_archive: "/tivie_light/data/" # Same as above. Extra flexibility allows these to be different.
+
+  # Set target folder (where it saves the outputs):
+  target_folder: "/tivie_light/temp_tivie_run/"  # Temp Data files go here
+  output_folder: "/tivie_light/outputs/"  # Output files and plots go here
+
+plotting:
+  highlight_mode: 1
+
+date_time_variables:
+  start_datet: "200008300200"  # e.g.: "201408170452" # These strings needs to be yyyymmddhhmm
+  end_datet: "200008312000"  # e.g.: "201409060452"  # Same format.
