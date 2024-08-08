@@ -1,4 +1,4 @@
-Welcome to TiVIE light v 1.0! 
+Welcome to TiVIE light v 1.0! https://zenodo.org/badge/839870301.svg
 
 Written by Maria-Theresia Walach, GNU General Public License v3.0, August 2024.
 
