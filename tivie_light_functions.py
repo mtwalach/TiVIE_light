@@ -848,7 +848,7 @@ def get_sw_timeseries_mode3(start_datet, end_datet, omni, storm_archive, sw_arch
         & (omni.hour == end_hh)
         & (omni.minute == end_mm)
     )
-
+    
     # find storms:
     st_before = (
         (np.asarray(storm_year) == start_year)
@@ -960,7 +960,7 @@ def get_sw_timeseries_mode3(start_datet, end_datet, omni, storm_archive, sw_arch
         else:
             storm_timeseries[n:o] = 3
             new_storm_timeseries[n:o] = rec_arr[
-                len(rec_arr) - (d - (np.nonzero(start_idx)[0][0])) :
+                len(rec_arr) - (d - c) :
             ]
 
     return storm_timeseries, new_storm_timeseries
@@ -1471,6 +1471,17 @@ def read_files(file_folder, correct_dt, missing_n):
         ds = []
     return ds
 
+###################################
+def get_storm_onset_timings(storm_phases, date_time, cadence):
+    if (len(storm_phases) > 0): 
+        diff = [storm_phases[i+1] - storm_phases[i] for i in range(0, len(storm_phases)-1)]
+        phase_change = np.where(np.ravel(diff) != 0)
+        phase_change = np.int64(np.round(phase_change[0]/cadence))
+        onset_timings = [date_time[phase_change[i]] for i in np.arange(0, len(phase_change)-1)]
+    else:
+        onset_timings = []
+        print('No storm phase changes found in the given time range.')
+    return onset_timings
 
 ###################################
 def calc_potential_for_entire_set(ds):
@@ -1605,88 +1616,97 @@ def make_plot(
         ax5.plot(
             ds1["time_records_without_gaps"],
             cpcp_ds1 / 1e3,
-            color="aquamarine",
+            color="pink",
             label="TiVIE mode 1",
             alpha=0.8,
+            linewidth=1.5,
         )
         ax6.plot(
             ds1["time_records_without_gaps"],
             hmb_ds1,
-            color="aquamarine",
+            color="pink",
             alpha=0.8,
+            linewidth=1.5,
         )
-        ax7.semilogy(ds1["time"], ds1["n"], color="aquamarine", alpha=0.8)
 
     if len(ds2) >= 1:
         b_idx = np.where(ds2["time"] == ds2["time_records_without_gaps"])[1]
         ax5.plot(
             ds2["time_records_without_gaps"][b_idx],
             ds2["cpcp"] / 1e3,
-            color="goldenrod",
+            color="forestgreen",
             label="TiVIE mode 2",
+            linewidth=1.5,
             alpha=0.8,
         )
         ax6.plot(
             ds2["time_records_without_gaps"][b_idx],
             ds2["hmb"],
-            color="goldenrod",
+            color="forestgreen",
             alpha=0.8,
+            linewidth=1.5,
         )
         ax7.semilogy(
             ds2["time_records_without_gaps"][b_idx],
             ds2["n"],
-            color="goldenrod",
+            color="forestgreen",
             alpha=0.8,
+            linewidth=1.5,
         )
 
     if len(ds3) >= 1:
+        np.where(ds3["time"] == ds3["time_records_without_gaps"])
         c_idx = np.where(ds3["time"] == ds3["time_records_without_gaps"])[1]
         ax5.plot(
             ds3["time_records_without_gaps"][c_idx],
             ds3["cpcp"] / 1e3,
-            color="orange",
+            color="forestgreen",
             label="TiVIE mode 3",
             alpha=0.8,
+            linewidth=1.5,
         )
         ax6.plot(
             ds3["time_records_without_gaps"][c_idx],
             ds3["hmb"],
-            color="orange",
+            color="forestgreen",
             alpha=0.8,
+            linewidth=1.5,
         )
         ax7.semilogy(
             ds3["time_records_without_gaps"][c_idx],
             ds3["n"],
-            color="orange",
+            color="forestgreen",
             alpha=0.8,
+            linewidth=1.5,
         )
 
     if len(omni) >= 1:
         ax1.plot(
             omni_time,
             omni["bx_gse"],
-            color="coral",
+            color="forestgreen",
             label="$B_{x}$",
-            alpha=0.8,
+            alpha=0.6,
         )
         ax1.plot(
             omni_time,
             omni["by_gsm"],
-            color="firebrick",
+            color="orange",
+            linestyle="dashed",
             label="$B_{y}$",
-            alpha=0.8,
+            alpha=0.6,
         )
         ax1.plot(
             omni_time,
             omni["bz_gsm"],
-            color="magenta",
+            color="mediumpurple",
             label="$B_{z}$",
-            alpha=0.8,
+            alpha=0.6,
         )
-        ax2.plot(omni_time, omni["vsw"], color="mediumorchid", alpha=0.8)
-        ax3.plot(omni_time, omni["al"], color="olivedrab", label="AL", alpha=0.8)
+        ax2.plot(omni_time, omni["vsw"], color="black", alpha=0.8)
+        ax3.plot(omni_time, omni["al"], color="olivedrab", label="AL", alpha=0.8, linestyle="dashed")
         ax3.plot(omni_time, omni["au"], color="teal", label="AU", alpha=0.8)
-        ax4.plot(omni_time, omni["symh"], color="pink", alpha=0.8)
+        ax4.plot(omni_time, omni["symh"], color="black", alpha=0.8)
 
     # # Highlight the chosen mode:
     if mode == 1:
@@ -1694,21 +1714,21 @@ def make_plot(
             ds1["time_records_without_gaps"],
             0,
             cpcp_ds1 / 1e3,
-            color="aquamarine",
+            color="forestgreen",
             alpha=0.3,
         )
         ax6.fill_between(
             ds1["time_records_without_gaps"][a_idx],
             0,
             ds1["hmb"],
-            color="aquamarine",
+            color="forestgreen",
             alpha=0.3,
         )
         ax7.fill_between(
             ds1["time_records_without_gaps"][a_idx],
             0,
             ds1["n"],
-            color="aquamarine",
+            color="forestgreen",
             alpha=0.3,
         )
     if mode == 2:
@@ -1716,21 +1736,21 @@ def make_plot(
             ds2["time_records_without_gaps"][b_idx],
             0,
             ds2["cpcp"] / 1e3,
-            color="goldenrod",
+            color="forestgreen",
             alpha=0.3,
         )
         ax6.fill_between(
             ds2["time_records_without_gaps"][b_idx],
             0,
             ds2["hmb"],
-            color="goldenrod",
+            color="forestgreen",
             alpha=0.3,
         )
         ax7.fill_between(
             ds2["time_records_without_gaps"][b_idx],
             0,
             ds2["n"],
-            color="goldenrod",
+            color="forestgreen",
             alpha=0.3,
         )
     if mode == 3:
@@ -1738,21 +1758,21 @@ def make_plot(
             ds3["time_records_without_gaps"][c_idx],
             0,
             ds3["cpcp"] / 1e3,
-            color="orange",
+            color="forestgreen",
             alpha=0.3,
         )
         ax6.fill_between(
             ds3["time_records_without_gaps"][c_idx],
             0,
             ds3["hmb"],
-            color="orange",
+            color="forestgreen",
             alpha=0.3,
         )
         ax7.fill_between(
             ds3["time_records_without_gaps"][c_idx],
             0,
             ds3["n"],
-            color="orange",
+            color="forestgreen",
             alpha=0.3,
         )
 
@@ -1813,7 +1833,7 @@ def make_plot(
     ax7.set_xlim([ds1["time"][0], ds1["time"][-1]])
 
     # Add number of ticks on xaxis:
-    ax7.set_xticks(ds1["time_records_without_gaps"][0::216])
+    # ax7.set_xticks(ds1["time_records_without_gaps"][0::216])
 
     # Save plot:
     plt.savefig(

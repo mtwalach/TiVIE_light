@@ -21,6 +21,7 @@ from tivie_light_functions import prep_mode2
 from tivie_light_functions import prep_mode3
 from tivie_light_functions import get_files
 from tivie_light_functions import read_files
+from tivie_light_functions import get_storm_onset_timings
 from tivie_light_functions import calc_potential_for_entire_set
 from tivie_light_functions import make_plot
 from tivie_light_functions import plot_maps
@@ -39,6 +40,8 @@ target_folder = config["filepaths"]["target_folder"]
 output_folder = config["filepaths"]["output_folder"]
 
 highlight_mode = config["plotting"]["highlight_mode"]
+plot_maps = config["plotting"]["plot_maps"]
+plot_summary = config["plotting"]["plot_summary"]
 
 start_datet = config["date_time_variables"]["start_datet"]
 end_datet = config["date_time_variables"]["end_datet"]
@@ -60,22 +63,24 @@ date_time = make_date_time(start_datet, end_datet, cadence)
 omni, clock_angle_bin, tau_bin, imf_bin = get_sw_timeseries_mode1(
     start_datet, end_datet, sw_archive
 )
-sub_timeseries, mlat_timeseries, onset_timings = get_sw_timeseries_mode2(
-    start_datet, end_datet, omni, sw_archive, substorm_archive
-)
-storm_phases, storm_timeseries = get_sw_timeseries_mode3(
-    start_datet, end_datet, omni, storm_archive, sw_archive
-)
-mode_1 = prep_mode1(clock_angle_bin, tau_bin, imf_bin)
-mode_2 = prep_mode2(sub_timeseries, mlat_timeseries)
-mode_3 = prep_mode3(storm_phases, storm_timeseries)
-
-missing_files3, missing_n3 = get_files(
+if highlight_mode == 2:
+    sub_timeseries, mlat_timeseries, onset_timings = get_sw_timeseries_mode2(
+        start_datet, end_datet, omni, sw_archive, substorm_archive
+    )
+    mode_2 = prep_mode2(sub_timeseries, mlat_timeseries)
+    missing_files2, missing_n2 = get_files(
+        2, mode_2[1:], target_folder, tivie_archive, cadence
+    )
+elif highlight_mode == 3:
+    storm_phases, storm_timeseries = get_sw_timeseries_mode3(
+        start_datet, end_datet, omni, storm_archive, sw_archive
+    )
+    mode_3 = prep_mode3(storm_phases, storm_timeseries)
+    onset_timings = get_storm_onset_timings(storm_phases, date_time, cadence)
+    missing_files3, missing_n3 = get_files(
     3, mode_3[1:], target_folder, tivie_archive, cadence
 )
-missing_files2, missing_n2 = get_files(
-    2, mode_2[1:], target_folder, tivie_archive, cadence
-)
+mode_1 = prep_mode1(clock_angle_bin, tau_bin, imf_bin)
 missing_files1, missing_n1 = get_files(
     1, mode_1[1:], target_folder, tivie_archive, cadence
 )
@@ -119,77 +124,81 @@ else:
 #################################
 ######## Mode 2 #################
 # #################################
-# # Read in mode 2:
-file_folder = target_folder + "mode2/"
-ds = read_files(file_folder, date_time, missing_n2)
-ds_2_err = 0
+if highlight_mode == 2:
+    # # Read in mode 2:
+    file_folder = target_folder + "mode2/"
+    ds = read_files(file_folder, date_time, missing_n2)
+    ds_2_err = 0
 
-if isinstance(ds, (xr.Dataset, xr.DataArray)):
-    mlat_arr, mlon_arr, potential = calc_potential_for_entire_set(ds)
+    if isinstance(ds, (xr.Dataset, xr.DataArray)):
+        mlat_arr, mlon_arr, potential = calc_potential_for_entire_set(ds)
 
-    # Annex potential to ds:
-    ds.update({"potential": (["time", "mlat_arr", "mlon_arr"], potential)})
-    ds.coords.update({"mlat_arr": (mlat_arr), "mlon_arr": (mlon_arr)})
-    ds["mlat_arr"].attrs["units"] = "degrees"
-    ds["mlon_arr"].attrs["units"] = "degrees"
+        # Annex potential to ds:
+        ds.update({"potential": (["time", "mlat_arr", "mlon_arr"], potential)})
+        ds.coords.update({"mlat_arr": (mlat_arr), "mlon_arr": (mlon_arr)})
+        ds["mlat_arr"].attrs["units"] = "degrees"
+        ds["mlon_arr"].attrs["units"] = "degrees"
 
-    # Check that the folder exists, if not, we make it:
-    if glob.glob(output_folder + "/" + str(start_datet) + "_" + str(end_datet)) == []:
-        os.makedirs(output_folder + "/" + str(start_datet) + "_" + str(end_datet) + "/")
+        # Check that the folder exists, if not, we make it:
+        if glob.glob(output_folder + "/" + str(start_datet) + "_" + str(end_datet)) == []:
+            os.makedirs(output_folder + "/" + str(start_datet) + "_" + str(end_datet) + "/")
 
-    # # Write potential to ncdf file:
-    ds.to_netcdf(
-        output_folder
-        + "/"
-        + str(start_datet)
-        + "_"
-        + str(end_datet)
-        + "/"
-        + str(start_datet)
-        + "_"
-        + str(end_datet)
-        + "_mode2.nc"
-    )
+        # # Write potential to ncdf file:
+        ds.to_netcdf(
+            output_folder
+            + "/"
+            + str(start_datet)
+            + "_"
+            + str(end_datet)
+            + "/"
+            + str(start_datet)
+            + "_"
+            + str(end_datet)
+            + "_mode2.nc"
+        )
+    else:
+        ds_2_err += 1
 else:
-    ds_2_err += 1
-
+    ds_2_err = 1
 #################################
 ######## Mode 3 #################
 #################################
-# # Read in mode 3:
-file_folder = target_folder + "mode3/"
-ds = read_files(file_folder, date_time, missing_n3)
-ds_3_err = 0
+if highlight_mode == 3:
+    # # Read in mode 3:
+    file_folder = target_folder + "mode3/"
+    ds = read_files(file_folder, date_time, missing_n3)
+    ds_3_err = 0
 
-if isinstance(ds, (xr.Dataset, xr.DataArray)):
-    mlat_arr, mlon_arr, potential = calc_potential_for_entire_set(ds)
+    if isinstance(ds, (xr.Dataset, xr.DataArray)):
+        mlat_arr, mlon_arr, potential = calc_potential_for_entire_set(ds)
 
-    # Annex potential to ds:
-    ds.update({"potential": (["time", "mlat_arr", "mlon_arr"], potential)})
-    ds.coords.update({"mlat_arr": (mlat_arr), "mlon_arr": (mlon_arr)})
-    ds["mlat_arr"].attrs["units"] = "degrees"
-    ds["mlon_arr"].attrs["units"] = "degrees"
+        # Annex potential to ds:
+        ds.update({"potential": (["time", "mlat_arr", "mlon_arr"], potential)})
+        ds.coords.update({"mlat_arr": (mlat_arr), "mlon_arr": (mlon_arr)})
+        ds["mlat_arr"].attrs["units"] = "degrees"
+        ds["mlon_arr"].attrs["units"] = "degrees"
 
-    # Check that the folder exists, if not, we make it:
-    if glob.glob(output_folder + "/" + str(start_datet) + "_" + str(end_datet)) == []:
-        os.makedirs(output_folder + "/" + str(start_datet) + "_" + str(end_datet) + "/")
+        # Check that the folder exists, if not, we make it:
+        if glob.glob(output_folder + "/" + str(start_datet) + "_" + str(end_datet)) == []:
+            os.makedirs(output_folder + "/" + str(start_datet) + "_" + str(end_datet) + "/")
 
-    # # Write potential to ncdf file:
-    ds.to_netcdf(
-        output_folder
-        + "/"
-        + str(start_datet)
-        + "_"
-        + str(end_datet)
-        + "/"
-        + str(start_datet)
-        + "_"
-        + str(end_datet)
-        + "_mode3.nc"
-    )
+        # # Write potential to ncdf file:
+        ds.to_netcdf(
+            output_folder
+            + "/"
+            + str(start_datet)
+            + "_"
+            + str(end_datet)
+            + "/"
+            + str(start_datet)
+            + "_"
+            + str(end_datet)
+            + "_mode3.nc"
+        )
+    else:
+        ds_3_err += 1
 else:
-    ds_3_err += 1
-
+    ds_3_err = 1
 #################################
 ######## Grab all the data: ####
 ################################
@@ -241,28 +250,30 @@ else:
 # #################################
 # ######## Plot all data as timeseries: #########
 # #################################
-status = make_plot(
-    output_folder,
-    start_datet,
-    end_datet,
-    onset_timings,
-    highlight_mode,  # Choose which mode to highlight here: replace this with 1, 2 or 3, for 1=IMF mode; 2=substorm mode and 3=storms mode.
-    omni,
-    ds1=ds1,
-    ds2=ds2,
-    ds3=ds3,
-)
-# You can choose which models you want to plot here. To miss one out, simply replace with empty array, e.g. during non-substorm times, I will replace ds2=ds2 with ds2=[]
-print(status)
+if plot_summary == 1:
+    status = make_plot(
+        output_folder,
+        start_datet,
+        end_datet,
+        onset_timings,
+        highlight_mode,  # Choose which mode to highlight here: replace this with 1, 2 or 3, for 1=IMF mode; 2=substorm mode and 3=storms mode.
+        omni,
+        ds1=ds1,
+        ds2=ds2,
+        ds3=ds3
+        )
+    # You can choose which models you want to plot here. To miss one out, simply replace with empty array, e.g. during non-substorm times, I will replace ds2=ds2 with ds2=[]
+    print(status)
 #################################
 ######## Plot maps: ############
 ################################
-status = plot_maps(output_folder, ds1, highlight_mode, start_datet, end_datet)
-# put in "highlight_mode" which dataset you want to plot out
-#   and which mode (choices are 1 for IMF mode, 2 for substorm mode and 3 for storms)
-# Note: mode number (e.g. 3) is for setting annotations
-#    and the dataset is what gets plotted so make sure they are the same!
-print(status)
+if plot_maps == 1:
+    status = plot_maps(output_folder, ds1, highlight_mode, start_datet, end_datet)
+    # put in "highlight_mode" which dataset you want to plot out
+    #   and which mode (choices are 1 for IMF mode, 2 for substorm mode and 3 for storms)
+    # Note: mode number (e.g. 3) is for setting annotations
+    #    and the dataset is what gets plotted so make sure they are the same!
+    print(status)
 #################################
 ####### When we are done, we'll close the datasets:
 #################################

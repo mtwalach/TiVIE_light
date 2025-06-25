@@ -21,8 +21,10 @@ filepaths:
   output_folder: "/tivie_light/outputs/"  # Output files and plots go here
 
 plotting:
-  highlight_mode: 2
-
+  highlight_mode: 2 # 1: highlight IMF mode, 2: highlight substorms, 3: highlight storms
+  plot_maps: 0 # 0: do not plot maps, 1: plot maps
+  plot_summary: 1 # 0: do not plot summary, 1: plot summary
+    
 date_time_variables:
   start_datet: "200008300200"  # e.g.: "201408170452" # These strings needs to be yyyymmddhhmm
   end_datet: "200008312000"  # e.g.: "201409060452"  # Same format.
