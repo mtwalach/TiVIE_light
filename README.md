@@ -12,7 +12,7 @@ To run TiVIE light, you need several things:
 
 
 The TiVIE light code takes a timespan as input and then produces plots with TiVIE outputs: 
-- It will produce a timeseries (similar to what is published in the original TiVIE paper by Walach & Grocott (submitted, 2024)).
+- It will produce a timeseries (similar to what is published in the original TiVIE paper by Walach & Grocott: Walach, M.-T., & Grocott, A. (2025). Modeling the time-variability of the ionospheric electric potential (TiVIE). Space Weather, 23, e2024SW004139. https://doi.org/10.1029/2024SW004139).
 - It will produce individual convection maps of whichever TiVIE mode is chosen to be highlighted.
 
 You can choose the highlighting mode (this also highlights) the mode in the timeseries. 
